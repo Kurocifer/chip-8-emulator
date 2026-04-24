@@ -3,8 +3,8 @@
 #include <thread>
 
 #include "chip8.h"
-#include "logger.h"
 #include "cpu.h"
+#include "logger.h"
 
 TChip8::TChip8()
     : m_emulatorRunning(true) 

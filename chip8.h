@@ -54,7 +54,7 @@ class TChip8
     uint8_t m_screen[SCREEN_HEIGHT][SCREEN_WIDTH];
 
     // keyboard
-    uint8_t m_Keys[NUM_KEYS];
+    uint8_t m_keys[NUM_KEYS];
     bool m_key_pressed;
 
     // memory
