@@ -22,7 +22,8 @@ CFILES=
 CPPFILES= 	main.cpp				\
 			logger.cpp				\
 			CmdLineParser.cpp		\
-			
+			chip8.cpp				\
+			romLoader.cpp			\
 
 
 # Create obj files names from source files
