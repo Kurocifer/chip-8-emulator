@@ -266,3 +266,151 @@ void TCpu::generate_random_number()
 
     m_reg[reg] = randNum & kk;
 }
+
+void TCpu::draw_sprite()
+{
+    uint8_t v_reg_x = (m_current_op & 0x0F00) >> 8;
+    uint8_t v_reg_y = (m_current_op & 0x00F0) >> 4;   
+    uint8_t sprite_height = m_current_op & 0x000F;
+    uint8_t x_location = m_reg[v_reg_x];
+    uint8_t y_location = m_reg[v_reg_y];
+
+    // Reset colision register
+    m_reg[0xF] = 0;
+    for(int y_coordinate = 0; y_coordinate < sprite_height; y_coordinate++)
+    {
+        uint8_t pixel = m_machine->m_ram[m_ireg + y_coordinate];
+        for(int x_coordinate = 0; x_coordinate < 8; x_coordinate++)
+        {
+            if((pixel & (0x80 >> x_coordinate)) != 0)
+            { 
+                if(m_machine->m_screen[y_location + y_coordinate][x_location + x_coordinate] == 1)
+                    m_reg[0xF] = 1;
+                
+                m_machine->m_screen[y_location + y_coordinate][x_location + x_coordinate] ^= 0x1;
+            }
+        }
+    }
+}
+
+void TCpu::decode_E_instruction()
+{
+    switch(m_current_op & 0xFF)
+    {
+        case 0x009E: skip_next_inst_if_key_pressed(); break;
+        case 0x00A1: skip_next_inst_if_not_pressed(); break;
+        default: m_logger->log("Instruction E with code " + std::to_string(m_current_op & 0xFF), ELogLevel::ERROR);
+    }
+}
+
+void TCpu::skip_next_inst_if_key_pressed()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    uint8_t val = m_reg[reg];
+
+    if(m_machine->m_keys[val] != 0)
+        m_pcreg += 2;
+}
+
+void TCpu::skip_next_inst_if_not_pressed()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    uint8_t val = m_reg[reg];
+
+    if(m_machine->m_keys[val] == 0)
+        m_pcreg += 2;
+}
+
+void TCpu::decode_F_instruction()
+{
+    switch(m_current_op & 0xFF)
+    {
+        case 0x0007: load_reg_with_delay_timer(); break;
+        case 0x000A: wait_key_press(); break;
+        case 0x0015: load_delay_timer_with_reg(); break;
+        case 0x0018: load_sound_timer_with_reg(); break;
+        case 0x001E: add_ireg_with_reg(); break;
+        case 0x0029: load_font_from_vx(); break;
+        case 0x0033: store_binary_code_decimal_representation(); break;
+        case 0x0055: load_memory_from_regs(); break;
+        case 0x0065: load_regs_from_memory(); break;
+        default: m_logger->log("Instruction F with code " + std::to_string(m_current_op & 0xFF), ELogLevel::ERROR);
+    }
+}
+
+void TCpu::load_reg_with_delay_timer()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    m_reg[reg] = m_machine->m_delay_timer;
+}
+
+void TCpu::wait_key_press()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    bool key_pressed = false;
+
+    for(int i=0; i<NUM_KEYS; i++)
+    {
+        if(m_machine->m_keys[i] != 0)
+        {
+            m_reg[reg] = i;
+            key_pressed = true;
+        }
+    }
+
+    if(!key_pressed)
+        m_pcreg -= 2;
+}
+
+void TCpu::load_delay_timer_with_reg()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    m_machine->m_delay_timer = m_reg[reg];
+}
+
+void TCpu::load_sound_timer_with_reg()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    m_machine->m_sound_timer = m_reg[reg];
+}
+
+void TCpu::add_ireg_with_reg()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    m_ireg += m_reg[reg];
+}
+
+void TCpu::load_font_from_vx()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+    m_ireg = m_reg[reg] * 0x5;
+}
+
+void TCpu::store_binary_code_decimal_representation()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+
+    m_machine->m_ram[m_ireg] = m_reg[reg] / 100;
+    m_machine->m_ram[m_ireg+1] = (m_reg[reg] / 10) % 10;
+    m_machine->m_ram[m_ireg+1] = (m_reg[reg] % 100) % 10;
+}
+
+void TCpu::load_memory_from_regs()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+
+    for(int i=0; i<=reg; i++)
+        m_machine->m_ram[m_ireg + i] = m_reg[i];
+
+    m_ireg += (reg + 1);
+}
+
+void TCpu::load_regs_from_memory()
+{
+    uint8_t reg = (m_current_op >> 8) & 0x0F;
+
+    for(int i=0; i<=reg; i++)
+        m_reg[i] = m_machine->m_ram[m_ireg + i];
+
+    m_ireg += (reg + 1);
+}
