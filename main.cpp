@@ -2,6 +2,9 @@
 #include "logger.h"
 #include "cmdLineParser.h"
 #include "chip8.h"
+#include "displaysdl.h"
+#include "keyboardsdl.h"
+#include "soundsdl.h"
 
 int main(int argc, char **argv)
 {
@@ -30,7 +33,13 @@ int main(int argc, char **argv)
 
     logger->log("ROM Path: " +cmdParser.getRomFileName(), ELogLevel::INFO);
 
+    TDisplaySDL display;
+    TKeyboardSDL keyboard;
+    TSoundSDL sound;
     TChip8 emulator;
+    emulator.setDisplay(&display);
+    emulator.setKeyboard(&keyboard);
+    emulator.setSound(&sound);
     emulator.init(cmdParser.getRomFileName());
     emulator.run();
     emulator.deinit();

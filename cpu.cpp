@@ -46,27 +46,25 @@ void TCpu::execute()
 
     switch (m_instruction)
     {
-    case 0x0:
-    case 0x1:
-    case 0x2:
-    case 0x3:
-    case 0x4:
-    case 0x5:
-    case 0x6:
-    case 0x7:
-    case 0x8:
-    case 0x9:
-    case 0xA:
-    case 0xB:
-    case 0xC:
-    case 0xD:
-    case 0xE:
-    case 0xF:
-        m_logger->log("INSTRUCTION OPCODE NOT IMPLEMENTED!", ELogLevel::ERROR);
-        exit(1);
-        break;
+    case 0x0:   decode_0_instruction(); break;
+    case 0x1:   jump_to(); break;  
+    case 0x2:   call_subroutine(); break;
+    case 0x3:   skip_next_instruction_eq(); break;
+    case 0x4:   skip_next_instruction_ne(); break;
+    case 0x5:   skip_next_instruction_vx_vy(); break;
+    case 0x6:   register_set(); break;
+    case 0x7:   add_reg_imm(); break;
+    case 0x8:   decode_8_instruction(); break;
+    case 0x9:   skip_next_instruction_vx_vy_ne(); break;
+    case 0xA:   set_index_register(); break;
+    case 0xB:   jump_with_v0(); break;
+    case 0xC:   generate_random_number(); break;
+    case 0xD:   draw_sprite(); break;
+    case 0xE:   decode_E_instruction(); break;
+    case 0xF:   decode_F_instruction(); break;
 
     default:
+        m_logger->log("Unknown Instruction" + std::to_string(m_instruction), ELogLevel::ERROR);
         break;
     }
 }
@@ -413,4 +411,39 @@ void TCpu::load_regs_from_memory()
         m_reg[i] = m_machine->m_ram[m_ireg + i];
 
     m_ireg += (reg + 1);
+}
+
+void TCpu::decode_0_instruction()
+{
+    switch(m_current_op & 0xFF)
+    {
+        case 0xE0: clear_screen(); break;
+        case 0xEE: return_from_subroutine(); break;
+        default: m_logger->log("Instruction 0 with code " + std::to_string(m_current_op & 0xFF), ELogLevel::ERROR);
+    }
+}
+
+void TCpu::decode_8_instruction()
+{
+    switch(m_current_op & 0xF)
+    {
+        case 0x0: move_vy_to_vx(); break;
+        case 0x1: or_vx_vy(); break;
+        case 0x2: and_vx_vy(); break;
+        case 0x3: xor_vx_vy(); break;
+        case 0x4: add_vx_vy(); break;
+        case 0x5: sub_vx_vy(); break;
+        case 0x6: shift_right_reg(); break;
+        case 0x7: subn_vx_vy(); break;
+        case 0xE: shift_left_reg(); break;
+        default: m_logger->log("Instruction 8 with code " + std::to_string(m_current_op & 0xF), ELogLevel::ERROR);
+    }
+}
+
+void TCpu::and_vx_vy()
+{
+    uint8_t reg_x = (m_current_op >> 8) & 0x0F;
+    uint8_t reg_y = (m_current_op >> 4) & 0x0F;
+
+    m_reg[reg_x] &= m_reg[reg_y];
 }

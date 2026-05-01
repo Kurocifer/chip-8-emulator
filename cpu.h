@@ -77,22 +77,22 @@ class TCpu
     void shift_right_reg();
 
     // Instruction 8XY7 - Subtract Vx from Vy
-    void TCpu::subn_vx_vy();
+    void subn_vx_vy();
 
     // Instruction 8XYE - Vx multiplied by 2
-    void TCpu::shift_left_reg();
+    void shift_left_reg();
 
     // Instruction 9XY0 - Skip next instruction if Vx != Vy
-    void TCpu::skip_next_instruction_vx_vy_ne();
+    void skip_next_instruction_vx_vy_ne();
 
     // Instruction ANNN - Load I register with constant
-    void TCpu::set_index_register();
+    void set_index_register();
 
     // Instruction BNNN - Jump to location NNN + V0
-    void TCpu::jump_with_v0();
+    void jump_with_v0();
 
     // Instruction CXKK - Generate random number
-    void TCpu::generate_random_number();
+    void generate_random_number();
 
     // Instruction DXYN - Draw Sprite
     void draw_sprite();
@@ -135,6 +135,12 @@ class TCpu
 
     // Instruction FX65 - Read registers V0 through Vx from memory starting at location I
     void load_regs_from_memory();
+
+    // Instruction 0ZZZ
+    void decode_0_instruction();
+
+    // Instruction 8XYZ
+    void decode_8_instruction();
 
 public:
     TCpu(TChip8 *machine);

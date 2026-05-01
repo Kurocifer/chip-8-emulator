@@ -24,6 +24,10 @@ CPPFILES= 	main.cpp				\
 			CmdLineParser.cpp		\
 			chip8.cpp				\
 			romLoader.cpp			\
+			cpu.cpp					\
+			displaysdl.cpp			\
+			keyboardsdl.cpp			\
+			soundsdl.cpp			\
 
 
 # Create obj files names from source files
